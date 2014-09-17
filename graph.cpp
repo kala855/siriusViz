@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
-#include "../common/shader_utils.h"
+#include "./common/shader_utils.h"
 
 #include "res_texture.c"
 
