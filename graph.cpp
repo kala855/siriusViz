@@ -7,7 +7,7 @@
 
 #include "./common/shader_utils.h"
 
-#include "res_texture.c"
+#include "./utilities/utilidades.h"
 
 GLuint program;
 GLint attribute_coord2d;
@@ -22,11 +22,12 @@ float scale_x = 1.0;
 int mode = 1;
 
 struct point {
-	GLfloat x;
-	GLfloat y;
+  GLfloat x;
+  GLfloat y;
 };
 
 GLuint vbo;
+
 
 int init_resources() {
 
@@ -45,7 +46,7 @@ int init_resources() {
   vx = (float *)malloc(size);
 
   for (int i = 0; i < numData; ++i) {
-      fscanf(initFile,"%f %f %f %f", &x[i],&y[i], &vx[i],&vy[i]);
+      fscanf(initFile,"%f %f", &x[i],&vx[i]);//&vx[i],&vy[i]);
   }
 
   fclose(initFile);
@@ -73,20 +74,21 @@ int init_resources() {
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 #endif
 
-	/* Upload the texture for our point sprites */
-	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(1, &texture_id);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, res_texture.width, res_texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, res_texture.pixel_data);
-
 	// Create the vertex buffer object
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	// Create our own temporary buffer
 	point graph[100000];
+
+  float minimoX, maximoX, minimoVX, maximoVX, maxAbs;
+  maximoX = max(x,99999);
+  minimoX = min(x,99999);
+  maximoVX = max(vx,99999);
+  minimoVX = min(vx,99999);
+  maxAbs = max2Numbers(maximoVX, minimoVX);
+//  printf("El valor mínimo del vector x es : %f", minimo);
+ // printf("El valor máximo del vector x es : %f", maximo);
 
 	// Fill it in just like an array
 	for (int i = 0; i < 100000; i++) {
@@ -98,9 +100,15 @@ int init_resources() {
     //En este caso y debido a que las partículas para las que se inicia
     //la construcción de esta librería oscilan entre 0.0 - 25.0 en x y entre
     //-7.1568 - 7.0319 para y la transformación es la siguiente
-		graph[i].x = (x[i]/(25.0/2.0)) - 1.0;//x;
-		graph[i].y = (vx[i])/7.0319;//sin(x * 10.0) / (1.0 + x * x);
+    //La idea para la transformación es la siguiente
+    //dataTransformado = (data/(max(data)/2.0)) - 1; Para datos > a cero
+    //dataTransformado = (data/max(max(data),min(data))); Para datos > y < a cero
+		graph[i].x = (x[i]/(maximoX/2.0)) - 1.0;//x;
+		graph[i].y = (vx[i])/(maxAbs);//sin(x * 10.0) / (1.0 + x * x);
 	}
+
+free(x); free(y); free(vx); free(vy);
+
 
 	// Tell OpenGL to copy our array to the buffer object
 	glBufferData(GL_ARRAY_BUFFER, sizeof graph, graph, GL_STATIC_DRAW);
@@ -126,55 +134,45 @@ void display() {
 
 	/* Push each element in buffer_vertices to the vertex shader */
 	switch (mode) {
-	case 0:
-		glUniform1f(uniform_sprite, 0);
-		glDrawArrays(GL_LINE_STRIP, 0, 100000);
-		break;
-	case 1:
-		glUniform1f(uniform_sprite, 1);
-		glDrawArrays(GL_POINTS, 0, 100000);
-		break;
-	case 2:
-		glUniform1f(uniform_sprite, res_texture.width);
-		glDrawArrays(GL_POINTS, 0, 100000);
-		break;
-	}
-
-	glutSwapBuffers();
+    case 0:
+      glUniform1f(uniform_sprite, 0);
+      glDrawArrays(GL_LINE_STRIP, 0, 100000);
+      break;
+    case 1:
+      glUniform1f(uniform_sprite, 1);
+      glDrawArrays(GL_POINTS, 0, 100000);
+      break;
+  }
+  glutSwapBuffers();
 }
 
 void special(int key, int x, int y) {
 	switch (key) {
-	case GLUT_KEY_F1:
-		mode = 0;
-		printf("Now drawing using lines.\n");
-		break;
-	case GLUT_KEY_F2:
-		mode = 1;
-		printf("Now drawing using points.\n");
-		break;
-	case GLUT_KEY_F3:
-		mode = 2;
-		printf("Now drawing using point sprites.\n");
-		break;
-	case GLUT_KEY_LEFT:
-		offset_x -= 0.1;
-		break;
-	case GLUT_KEY_RIGHT:
-		offset_x += 0.1;
-		break;
-	case GLUT_KEY_UP:
-		scale_x *= 1.5;
-		break;
-	case GLUT_KEY_DOWN:
-		scale_x /= 1.5;
-		break;
-	case GLUT_KEY_HOME:
-		offset_x = 0.0;
-		scale_x = 1.0;
-		break;
-	}
-
+    case GLUT_KEY_F1:
+      mode = 0;
+      printf("Now drawing using lines.\n");
+      break;
+    case GLUT_KEY_F2:
+      mode = 1;
+      printf("Now drawing using points.\n");
+      break;
+    case GLUT_KEY_LEFT:
+      offset_x -= 0.1;
+      break;
+    case GLUT_KEY_RIGHT:
+      offset_x += 0.1;
+      break;
+    case GLUT_KEY_UP:
+      scale_x *= 1.5;
+      break;
+    case GLUT_KEY_DOWN:
+      scale_x /= 1.5;
+      break;
+    case GLUT_KEY_HOME:
+      offset_x = 0.0;
+      scale_x = 1.0;
+      break;
+  }
 	glutPostRedisplay();
 }
 
@@ -200,18 +198,12 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	GLfloat range[2];
-
-	glGetFloatv(GL_ALIASED_POINT_SIZE_RANGE, range);
-	if (range[1] < res_texture.width)
-		fprintf(stderr, "WARNING: point sprite range (%f, %f) too small\n", range[0], range[1]);
 
 	printf("Use left/right to move horizontally.\n");
 	printf("Use up/down to change the horizontal scale.\n");
 	printf("Press home to reset the position and scale.\n");
 	printf("Press F1 to draw lines.\n");
 	printf("Press F2 to draw points.\n");
-	printf("Press F3 to draw point sprites.\n");
 
 	if (init_resources()) {
 		glutDisplayFunc(display);

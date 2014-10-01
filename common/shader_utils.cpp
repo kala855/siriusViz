@@ -30,7 +30,7 @@ char* file_read(const char* filename)
     char* p_res = res + nb_read_total;
     nb_read_total += fread(p_res, 1, BUFSIZ, in);
   }
-  
+
   fclose(in);
   res = (char*)realloc(res, nb_read_total + 1);
   res[nb_read_total] = '\0';
