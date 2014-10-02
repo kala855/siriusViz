@@ -29,14 +29,24 @@ struct point {
 GLuint vbo;
 
 
-int init_resources() {
+int init_resources(char *fileName) {
 
   int numData;
   float *x,*y,*vx,*vy;
   FILE *initFile;
-  initFile = fopen("phase0.txt","r");
+  initFile = fopen(fileName,"r");
+  if(initFile==NULL){
+    printf("Archivo inexistente, verifique\n");
+    return (0);
+  }
 
+	printf("Use left/right to move horizontally.\n");
+	printf("Use up/down to change the horizontal scale.\n");
+	printf("Press home to reset the position and scale.\n");
+	printf("Press F1 to draw lines.\n");
+	printf("Press F2 to draw points.\n");
   fscanf(initFile,"%d", &numData);
+
   // allocate arrays on host
   size_t size = numData*sizeof(float);
 
@@ -181,6 +191,16 @@ void free_resources() {
 }
 
 int main(int argc, char *argv[]) {
+
+
+
+  printf("Cantidad de Argumentos: %d\n", argc);
+
+  if(argc < 2){
+    printf("Para usar la aplicación se debe indicar un archivo de entrada\n");
+    exit(1);
+  }
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB);
 	glutInitWindowSize(640, 480);
@@ -198,14 +218,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-
-	printf("Use left/right to move horizontally.\n");
-	printf("Use up/down to change the horizontal scale.\n");
-	printf("Press home to reset the position and scale.\n");
-	printf("Press F1 to draw lines.\n");
-	printf("Press F2 to draw points.\n");
-
-	if (init_resources()) {
+	if (init_resources(argv[1])) {
 		glutDisplayFunc(display);
 		glutSpecialFunc(special);
 		glutMainLoop();
