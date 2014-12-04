@@ -8,3 +8,5 @@ mostrarlos en pantalla usando openGL.
 El código está basado totalmente en el ofrecido por el wikibook "OpenGL
 Programming".
 
+La compilación del código se realiza mediante cmake. La idea es que este
+proceso sea simple.
