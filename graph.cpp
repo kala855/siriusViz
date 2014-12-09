@@ -89,19 +89,19 @@ int init_resources(char *fileName) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // Create our own temporary buffer
-    point graph[100000];
+    point graph[10000];
 
     float minimoX, maximoX, minimoVX, maximoVX, maxAbs;
-    maximoX = max(x,99999);
-    minimoX = min(x,99999);
-    maximoVX = max(vx,99999);
-    minimoVX = min(vx,99999);
+    maximoX = max(x,numData);
+    minimoX = min(x,numData);
+    maximoVX = max(vx,numData);
+    minimoVX = min(vx,numData);
     maxAbs = max2Numbers(maximoVX, minimoVX);
     //  printf("El valor mínimo del vector x es : %f", minimo);
     // printf("El valor máximo del vector x es : %f", maximo);
 
     // Fill it in just like an array
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < numData+1; i++) {
         //float x = (i - 1000.0) / 100.0;
         //Debido a que la pantalla cuando se usa openGL se divide en un plano
         //cartesianos que va desde -1 a 1 tanto en x como en y. Se hace
@@ -130,9 +130,13 @@ void animation(int file) {
     int numData;
     float *x,*y,*vx,*vy;
     FILE *initFile;
-    initFile = fopen("phase2.txt","r");
+    char fileName[3];
+
+    sprintf(fileName,"%d",file);
+
+    initFile = fopen(fileName,"r");
     if(initFile==NULL){
-        printf("Archivo inexistente animation, verifique\n");
+        printf("Archivo inexistente %s animation, verifique\n",fileName);
         exit (1);
     }
 
@@ -151,19 +155,19 @@ void animation(int file) {
     }
 
     fclose(initFile);
-    point graph[100000];
+    point graph[10000];
 
     float minimoX, maximoX, minimoVX, maximoVX, maxAbs;
-    maximoX = max(x,99999);
-    minimoX = min(x,99999);
-    maximoVX = max(vx,99999);
-    minimoVX = min(vx,99999);
+    maximoX = max(x,numData);
+    minimoX = min(x,numData);
+    maximoVX = max(vx,numData);
+    minimoVX = min(vx,numData);
     maxAbs = max2Numbers(maximoVX, minimoVX);
     //  printf("El valor mínimo del vector x es : %f", minimo);
     // printf("El valor máximo del vector x es : %f", maximo);
 
     // Fill it in just like an array
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < numData+1; i++) {
         //float x = (i - 1000.0) / 100.0;
         //Debido a que la pantalla cuando se usa openGL se divide en un plano
         //cartesianos que va desde -1 a 1 tanto en x como en y. Se hace
@@ -185,6 +189,9 @@ void animation(int file) {
     glBufferData(GL_ARRAY_BUFFER, sizeof graph, graph, GL_STATIC_DRAW);
 
     glutPostRedisplay();
+    file++;
+    if (file<11)
+      glutTimerFunc(500,animation,file);
 }
 
 
@@ -208,11 +215,11 @@ void display() {
     switch (mode) {
     case 0:
       glUniform1f(uniform_sprite, 0);
-      glDrawArrays(GL_LINE_STRIP, 0, 100000);
+      glDrawArrays(GL_LINE_STRIP, 0, 10000);
       break;
     case 1:
       glUniform1f(uniform_sprite, 1);
-      glDrawArrays(GL_POINTS, 0, 100000);
+      glDrawArrays(GL_POINTS, 0, 10000);
       break;
   }
   glutSwapBuffers();
@@ -280,7 +287,7 @@ int main(int argc, char *argv[]) {
 
     if (init_resources(argv[1])) {
         glutDisplayFunc(display);
-        glutTimerFunc(1500, animation, 1);
+        glutTimerFunc(1500, animation,0);
         glutSpecialFunc(special);
         glutMainLoop();
     }
